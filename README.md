@@ -56,3 +56,27 @@ Vue CLI v4.5.15
 cd just-image-viewer
 yarn add -D vue-cli-plugin-electron-builder electron
 ```
+
+```
+npm i -g eslint
+```
+
+```
+eslint --init
+```
+
+```
+eslint --init
+√ How would you like to use ESLint? · problems
+√ What type of modules does your project use? · esm
+√ Which framework does your project use? · vue
+√ Does your project use TypeScript? · No / Yes
+√ Where does your code run? · browser, node
+√ What format do you want your config file to be in? · JavaScript
+The config that you've selected requires the following dependencies:
+
+eslint-plugin-vue@latest @typescript-eslint/eslint-plugin@latest @typescript-eslint/parser@latest
+√ Would you like to install them now with npm? · No / Yes
+
+Successfully created .eslintrc.js file in D:\wrolp\just-image-viewer
+```
