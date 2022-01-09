@@ -84,3 +84,7 @@ Successfully created .eslintrc.js file in D:\wrolp\just-image-viewer
 ```
 vue add windicss
 ```
+
+```
+yarn add font-awesome js-base64 jszip
+```
