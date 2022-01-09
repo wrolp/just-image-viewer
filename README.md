@@ -80,3 +80,7 @@ eslint-plugin-vue@latest @typescript-eslint/eslint-plugin@latest @typescript-esl
 
 Successfully created .eslintrc.js file in D:\wrolp\just-image-viewer
 ```
+
+```
+vue add windicss
+```

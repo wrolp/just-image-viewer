@@ -77,6 +77,7 @@ module.exports = {
             // mainProcessFile: 'src/main.ts',
 
             nodeIntegration: true
-        }
+        },
+        windicss: {}
     }
 }
