@@ -1,7 +1,8 @@
 .DS_Store
 .history
 node_modules
-/dist
+dist
+dist_electron
 
 
 # local env files
