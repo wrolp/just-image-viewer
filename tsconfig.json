@@ -11,6 +11,9 @@
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "sourceMap": true,
+    "noEmit": true,
+    "newLine": "lf",
+    "pretty": true,
     "baseUrl": ".",
     "types": [
       "webpack-env",
