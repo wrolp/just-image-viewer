@@ -51,3 +51,8 @@ Vue CLI v4.5.15
 ? Where do you prefer placing config for Babel, ESLint, etc.? In dedicated config files
 ? Save this as a preset for future projects? No
 ```
+
+```
+cd just-image-viewer
+yarn add -D vue-cli-plugin-electron-builder electron
+```
