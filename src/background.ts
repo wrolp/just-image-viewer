@@ -10,13 +10,13 @@ import { sep } from 'path'
 let mainWindow: BrowserWindow | null
 const windowOptions: BrowserWindowConstructorOptions  = {
     height: 600,
+    width: 800,
     webPreferences: {
         // preload: path.join(__dirname, "preload.js"),
         webSecurity: false,
         nodeIntegration: true,
         contextIsolation: false
     },
-    width: 800,
     show: false,
     frame: false,
     backgroundColor: '#000'

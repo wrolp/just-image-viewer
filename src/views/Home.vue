@@ -1,16 +1,15 @@
 <template>
     <div>
         <title-bar :title="zipFileName" />
-        <div>
+        <div class="controller-area">
             <button class="btn m-1" @click="prev">prev</button>
             <button class="btn m-1" @click="next">next</button>
             <button class="btn m-1" @click="openZip">open zip</button>
         </div>
-        <div :style="{
-                width: '100%',
-                height: height + 'px',
-                'overflow-y': 'scroll'
-              }">
+        <div class="image-container"
+            :style="{
+                height: height + 'px'
+            }">
             <img v-for="item in images" :src="item.image" :title="item.filename" :width="width" :key="item.filename"/>
         </div>
     </div>
@@ -90,7 +89,7 @@
             const width = window.innerWidth || document.body.clientWidth || document.documentElement.clientWidth
             this.width = width - 4
             const clientHeight = window.innerHeight || document.body.clientHeight || document.documentElement.clientHeight
-            this.height = clientHeight - 66
+            this.height = clientHeight
         }
 
     }
@@ -138,6 +137,22 @@
 
     .footer {
         height: 10px;
+    }
+
+    .controller-area {
+        position: fixed;
+        top: 25px;
+        right: 10px;
+        z-index: 10001;
+    }
+
+    .image-container {
+        top: 0;
+        left: 0;
+        width: 100%;
+        position: fixed;
+        overflow-y: scroll;
+        z-index: 1000;
     }
 
     .btn {
