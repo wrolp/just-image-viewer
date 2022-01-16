@@ -1,0 +1,16 @@
+
+::-webkit-scrollbar-track {
+    @apply bg-transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    @apply bg-red-400 bg-clip-content;
+    @apply rounded-full;
+    @apply border-solid border-transparent border-2;
+    @apply hover:(bg-green-600 bg-clip-content);
+}
+
+::-webkit-scrollbar {
+    @apply w-2;
+    @apply h-2;
+}
