@@ -146,6 +146,10 @@ ipcMain.handle('open-zip', (event: IpcMainInvokeEvent) => {
         // console.log(value)
         const filePath = value.filePaths[0]
         if (filePath) {
+            console.log(filePath)
+            const lastIndexOfSep = filePath.lastIndexOf(sep);
+            dir = filePath.substring(0, lastIndexOfSep);
+
             const index = filePath.lastIndexOf(sep)
             const filename = filePath.substring(index + 1)
             const sender = event.sender
