@@ -14,7 +14,8 @@
     "jszip": "^3.7.1",
     "vue": "^3.0.0",
     "vue-class-component": "^8.0.0-0",
-    "vue-router": "^4.0.0-0"
+    "vue-router": "^4.0.0-0",
+    "vue-tippy": "^6.0.0-alpha.47"
   },
   "devDependencies": {
     "@types/chai": "^4.2.11",
