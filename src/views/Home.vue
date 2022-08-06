@@ -6,7 +6,7 @@
         height: height + 'px'
       }">
       <span style="margin-top: 40px;">hello</span>
-      <tippy
+      <!-- <tippy
         arrow
         interactive
         :hide-on-click="false"
@@ -29,7 +29,7 @@
         <template #content>
           <button>ZIP</button>
         </template>
-      </tippy>
+      </tippy> -->
       <img v-for="item in images" :src="item.image" :title="item.filename" :width="width" :key="item.filename"/>
     </div>
     <float-button class="paging-button" width="80" :height="60" icon="fa fa-chevron-left"
@@ -114,7 +114,7 @@
     }
 
     // public hide(): boolean {
-    //     return true
+    //   return true
     // }
 
   }

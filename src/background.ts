@@ -1,14 +1,21 @@
+import { createProtocol } from 'vue-cli-plugin-electron-builder/lib'
 import {
-  app, BrowserWindow, ipcMain,
-  BrowserWindowConstructorOptions, IpcMainInvokeEvent,
-  nativeTheme, dialog, OpenDialogReturnValue, WebContents
+  app,
+  BrowserWindow,
+  ipcMain,
+  BrowserWindowConstructorOptions,
+  IpcMainInvokeEvent,
+  nativeTheme,
+  dialog,
+  OpenDialogReturnValue,
+  WebContents
 } from 'electron'
 import JSZip from 'jszip'
 import fs from 'fs'
 import { sep } from 'path'
 
 let mainWindow: BrowserWindow | null
-const windowOptions: BrowserWindowConstructorOptions  = {
+const windowOptions: BrowserWindowConstructorOptions = {
   height: 600,
   width: 800,
   webPreferences: {
@@ -35,11 +42,14 @@ function createWindow() {
       mainWindow.webContents.openDevTools()
     }
   } else {
+    createProtocol('app')
+    // nativeTheme.themeSource = 'dark'
+    // mainWindow.webContents.openDevTools()
     mainWindow.loadURL('app://./index.html')
   }
 
   mainWindow.once('ready-to-show', () => {
-        mainWindow!.show()
+    mainWindow!.show()
   })
 
   mainWindow.on('closed', () => { mainWindow = null })
@@ -50,7 +60,7 @@ function createWindow() {
 }
 
 // ipcMain.handle('list-image-files', (event: IpcMainInvokeEvent) => {
-//     event.sender.send('image-files', fileNames.slice(0, pageSize))
+//   event.sender.send('image-files', fileNames.slice(0, pageSize))
 // })
 
 ipcMain.handle('close-window', () => mainWindow!.close())
@@ -193,12 +203,12 @@ app.on('ready', () => {
     BrowserWindow.getAllWindows().length === 0 && createWindow()
 
     // fs.readdir(dir, (err: any, files: string[]) => {
-    //     if (err) {
-    //         return console.error(err)
-    //     }
-    //     files.forEach((file: string) => {
-    //         console.log(file)
-    //     })
+    //   if (err) {
+    //     return console.error(err)
+    //   }
+    //   files.forEach((file: string) => {
+    //     console.log(file)
+    //   })
     // })
   })
 })

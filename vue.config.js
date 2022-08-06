@@ -4,14 +4,14 @@ module.exports = {
     port: 7823
   },
   // pages: {
-  //     index: {
-  //         title: 'vane',
-  //         entry: 'src/main.ts',
-  //         template: 'public/index.html',
-  //         filename: 'index.html',
-  //         chunks: ['chunk-vendors', 'chunk-common', 'index'],
-  //         platform: process.platform
-  //     }
+  //   index: {
+  //     title: 'vane',
+  //     entry: 'src/main.ts',
+  //     template: 'public/index.html',
+  //     filename: 'index.html',
+  //     chunks: ['chunk-vendors', 'chunk-common', 'index'],
+  //     platform: process.platform
+  //   }
   // },
   configureWebpack: {
     devtool: 'source-map'
@@ -19,7 +19,7 @@ module.exports = {
   css: {
     loaderOptions: {
       scss: {
-        prependData: `@import "@/assets/scss/theme.scss";`
+        additionalData: `@import "@/assets/scss/theme.scss";`
       }
     }
   },
@@ -33,17 +33,20 @@ module.exports = {
       // nodeModulesPath: ['./node_modules'],
 
       // preload: { preload: 'src/preload.js', otherPreload: 'src/preload2.js' },
-      // builderOptions: {
-      //     // options placed here will be merged with default configuration and passed to electron-builder
-      //     publish: ['github']
-      // }
+      builderOptions: {
+        // options placed here will be merged with default configuration and passed to electron-builder
+        // publish: ['github']
+        appId: 'org.wrolp.just-image-viewer',
+        productName: 'Just-Image-Viewer',
+        asar: true
+      },
 
       // chainWebpackMainProcess: (config) => {
-      //     // Chain webpack config for electron main process only
+      //   // Chain webpack config for electron main process only
       // },
 
       // chainWebpackRendererProcess: (config) => {
-      //     // Chain webpack config for electron renderer process only (won't be applied to web builds)
+      //   // Chain webpack config for electron renderer process only (won't be applied to web builds)
       // },
 
       // // Manually disable typescript plugin for main process. Enable if you want to use regular js for the main process (src/background.js by default).
