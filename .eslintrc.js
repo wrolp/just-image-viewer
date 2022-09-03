@@ -20,7 +20,7 @@ module.exports = {
   ],
   'rules': {
     'indent': ['error', 2],
-    'vue/script-indent': ['error', 2, {'baseIndent': 1}],
+    'vue/script-indent': ['error', 2, {'baseIndent': 0}],
     'quotes': ['error', 'single', { 'allowTemplateLiterals': true }]
   },
   'overrides': [
