@@ -1,16 +1,17 @@
 import { defineConfig } from 'windicss/helpers'
 import colors from 'windicss/colors'
 import plugin from 'windicss/plugin'
+import typography from 'windicss/plugin/typography'
 
 export default defineConfig({
   darkMode: 'class', // or 'media'
   theme: {
     extend: {
       screens: {
-        'sm': '640px',
-        'md': '768px',
-        'lg': '1024px',
-        'xl': '1280px',
+        sm: '640px',
+        md: '768px',
+        lg: '1024px',
+        xl: '1280px',
         '2xl': '1536px'
       },
       colors: {
@@ -52,15 +53,15 @@ export default defineConfig({
           fontWeight: '600'
         },
         '.btn-blue': {
-          'backgroundColor': '#3490dc',
-          'color': '#fff',
+          backgroundColor: '#3490dc',
+          color: '#fff',
           '&:hover': {
             backgroundColor: '#2779bd'
           }
         },
         '.btn-red': {
-          'backgroundColor': '#e3342f',
-          'color': '#fff',
+          backgroundColor: '#e3342f',
+          color: '#fff',
           '&:hover': {
             backgroundColor: '#cc1f1a'
           }
@@ -80,7 +81,7 @@ export default defineConfig({
     require('windicss/plugin/forms'),
     require('windicss/plugin/aspect-ratio'),
     require('windicss/plugin/line-clamp'),
-    require('windicss/plugin/typography')({
+    typography({
       modifiers: ['DEFAULT', 'sm', 'lg', 'red']
     })
   ]

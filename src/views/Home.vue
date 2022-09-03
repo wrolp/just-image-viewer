@@ -32,31 +32,25 @@
       </tippy> -->
       <img v-for="item in images" :src="item.image" :title="item.filename" :width="width" :key="item.filename"/>
     </div>
-    <float-button class="paging-button" width="80" :height="60" icon="fa fa-chevron-left"
-                  :top="flipButtonTop" :left="10" @click="prev"/>
-    <float-button class="paging-button" :width="80" :height="60" icon="fa fa-chevron-right"
-                  :top="flipButtonTop" :right="10" @click="next"/>
+    <float-button class="paging-button" :width=80 :height=60 icon="fa fa-chevron-left"
+                  :top="flipButtonTop" :left="10" :pageInfo="pageInfo" @click="prev"/>
+    <float-button class="paging-button" :width=80 :height=60 icon="fa fa-chevron-right"
+                  :top="flipButtonTop" :right="10" :pageInfo="pageInfo" @click="next"/>
   </div>
 </template>
 
 <script lang="ts">
 // import {getCurrentInstance} from 'vue'
-import {Options, Vue} from 'vue-class-component'
-import {ipcRenderer, IpcRendererEvent} from 'electron'
+import { Options, Vue } from 'vue-class-component'
+import { PageInfo } from '@/types/common'
+import { ipcRenderer, IpcRendererEvent } from 'electron'
+import { debounce } from '@/utils/utils'
 import TitleBar from '@/components/TitleBar.vue'
 import FloatButton from '@/components/FloatButton.vue'
 
 interface ImgItem {
   filename: string
   image: string
-}
-
-const debounce: Function = (fn: Function, delay: number): Function => {
-  let timer: any = null
-  return function (this: any, ...args: any[]) {
-    timer && clearTimeout(timer)
-    timer = setTimeout(() => fn.apply(this, args), delay)
-  }
 }
 
 @Options({
@@ -67,12 +61,13 @@ const debounce: Function = (fn: Function, delay: number): Function => {
 })
 export default class Home extends Vue {
   images: ImgItem[] = []
-  zipFileName: string = ''
-  width: number = 800
-  height: number = 600
-  flipButtonTop: number = this.height / 2
+  zipFileName = ''
+  width = 800
+  height = 600
+  flipButtonTop = this.height / 2
+  pageInfo: PageInfo | null = null
 
-  public mounted(): void {
+  mounted () {
     // console.log(getCurrentInstance())
     // console.log('mounted')
     ipcRenderer.on('image-content', (event: IpcRendererEvent, arg: ImgItem) => {
@@ -83,29 +78,32 @@ export default class Home extends Vue {
       })
     })
     ipcRenderer.on('zip-filename', (event: IpcRendererEvent, filename: string) => {
-      this.zipFileName = filename;
+      this.zipFileName = filename
       this.images = []
+    })
+    ipcRenderer.on('page-info', (event: IpcRendererEvent, pageInfo: PageInfo) => {
+      this.pageInfo = pageInfo
     })
     this.resize()
 
     window.addEventListener('resize', debounce(() => this.resize(), 50))
   }
 
-  public closeWindow(): void {
+  closeWindow () {
     ipcRenderer.invoke('close-app')
   }
 
-  public prev(): void {
+  prev () {
     this.images = []
     ipcRenderer.invoke('show-prev')
   }
 
-  public next(): void {
+  next () {
     this.images = []
     ipcRenderer.invoke('show-next')
   }
 
-  public resize(): void {
+  resize () {
     const width = window.innerWidth || document.body.clientWidth || document.documentElement.clientWidth
     this.width = width - 4
     const clientHeight = window.innerHeight || document.body.clientHeight || document.documentElement.clientHeight
@@ -113,10 +111,9 @@ export default class Home extends Vue {
     this.flipButtonTop = this.height / 2 - 40
   }
 
-  // public hide(): boolean {
+  // hide(): boolean {
   //   return true
   // }
-
 }
 </script>
 

@@ -1,6 +1,5 @@
 <template>
-  <div class="float-area"
-    :style="{
+  <div class="float-area" :style="{
       top: top !== -999999 ? (top + 'px') : undefined,
       left: left !== -999999 ? (left + 'px') : undefined,
       right: right !== -999999 ? (right + 'px') : undefined,
@@ -8,6 +7,10 @@
       width: width + 'px',
       height: height + 'px'
     }">
+    <template v-if="pageInfo">
+      {{pageInfo.currentPage}} / {{pageInfo.pageNumber}} <br/>
+      {{pageInfo.totalSize}}
+    </template>
     <i :class="icon"
       style="color: white; font-size: 40px; padding-top: 12px;"></i>
   </div>
@@ -31,9 +34,10 @@ export default defineComponent({
     bottom: { type: Number, default: -999999 },
     width: { type: Number, default: 0 },
     height: { type: Number, default: 0 },
-    icon: { type: String, default: '' }
+    icon: { type: String, default: '' },
+    pageInfo: { type: Object, default: null }
   },
-  setup(props) {
+  setup (props) {
     const top = ref(0)
     const left = ref(0)
     const right = ref(0)
@@ -41,6 +45,7 @@ export default defineComponent({
     const width = ref(0)
     const height = ref(0)
     // const icon = ref('')
+    const pageInfo = ref()
 
     watch(() => props.top, () => {
       top.value = props.top
@@ -58,6 +63,7 @@ export default defineComponent({
         top.value = top.value - height.value / 2
       }
     })
+    watch(() => props.pageInfo, () => { pageInfo.value = props.pageInfo })
 
     onMounted(() => {
       // icon.value = 'fa fa-' + props.icon
@@ -74,11 +80,15 @@ export default defineComponent({
   position: fixed;
   background-color: rgba(255, 0, 0, 0.493);
   z-index: 8888;
+  color: transparent;
   & > i {
     display: none;
     &:hover {
       display: block;
     }
+  }
+  &:hover {
+    color: #fff;
   }
 }
 </style>

@@ -44,7 +44,7 @@ export default defineComponent({
   props: {
     title: { type: String, default: '' }
   },
-  setup(props) {
+  setup (props) {
     const title = ref('')
     const maximized = ref(false)
 

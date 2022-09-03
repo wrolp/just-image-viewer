@@ -29,7 +29,7 @@ const windowOptions: BrowserWindowConstructorOptions = {
   backgroundColor: '#000'
 }
 
-function createWindow() {
+function createWindow () {
   // Create the browser window.
   mainWindow = new BrowserWindow(windowOptions)
 
@@ -49,12 +49,12 @@ function createWindow() {
   }
 
   mainWindow.once('ready-to-show', () => {
-    mainWindow!.show()
+    mainWindow && mainWindow.show()
   })
 
   mainWindow.on('closed', () => { mainWindow = null })
-  mainWindow.on('maximize', () => mainWindow!.webContents.send('maximized', true))
-  mainWindow.on('unmaximize', () => mainWindow!.webContents.send('maximized', false))
+  mainWindow.on('maximize', () => mainWindow && mainWindow.webContents.send('maximized', true))
+  mainWindow.on('unmaximize', () => mainWindow && mainWindow.webContents.send('maximized', false))
 
   console.log(__dirname)
 }
@@ -63,10 +63,10 @@ function createWindow() {
 //   event.sender.send('image-files', fileNames.slice(0, pageSize))
 // })
 
-ipcMain.handle('close-window', () => mainWindow!.close())
-ipcMain.handle('minimize-window', () => mainWindow!.minimize())
-ipcMain.handle('maximize-window', () => mainWindow!.maximize())
-ipcMain.handle('restore-window', () => mainWindow!.restore())
+ipcMain.handle('close-window', () => mainWindow && mainWindow.close())
+ipcMain.handle('minimize-window', () => mainWindow && mainWindow.minimize())
+ipcMain.handle('maximize-window', () => mainWindow && mainWindow.maximize())
+ipcMain.handle('restore-window', () => mainWindow && mainWindow.restore())
 
 // ipcMain.handle('next-page', (event: IpcMainInvokeEvent) => {
 //     console.log('handle next-page')
@@ -93,19 +93,19 @@ ipcMain.handle('restore-window', () => mainWindow!.restore())
 let files: JSZip.JSZipObject[] = []
 // let currentIndex: number = 0
 
-let currentPage: number = 0
-let pageSize: number = 10
-let maxPageIndex: number = 0
-let dir: string = 'C:\\'
+let currentPage = 0
+const pageSize = 10
+let maxPageIndex = 0
+let dir = 'C:\\'
 // let zipname: string = ''
 
-function sendImageData(sender: WebContents) {
+function sendImageData (sender: WebContents) {
   if (files.length > 0) {
-    let start = currentPage * pageSize
-    let end =  (currentPage + 1) * pageSize
+    const start = currentPage * pageSize
+    const end = (currentPage + 1) * pageSize
     for (let i = start; i < end; i++) {
       if (i > files.length - 1) {
-        break;
+        break
       }
       files[i].async('base64').then((content: string) => {
         sender.send('image-content', {
@@ -117,7 +117,7 @@ function sendImageData(sender: WebContents) {
   }
 }
 
-function readZipFile(sender: WebContents, filePath: string): void {
+function readZipFile (sender: WebContents, filePath: string): void {
   fs.readFile(filePath, (err, data: Buffer) => {
     if (err) throw err
 
@@ -131,21 +131,26 @@ function readZipFile(sender: WebContents, filePath: string): void {
         files.push(file)
       })
       maxPageIndex = Math.floor(files.length / pageSize)
-      if (files.length % pageSize == 0) {
+      if (files.length % pageSize === 0) {
         maxPageIndex--
       }
-      logPageInfo()
+      logPageInfo(sender)
       sendImageData(sender)
     })
   })
 }
 
-function logPageInfo() {
+function logPageInfo (sender: WebContents) {
   console.log('current page: ' + (currentPage + 1), 'page number: ' + (maxPageIndex + 1), 'size: ' + files.length)
+  sender.send('page-info', {
+    currentPage: currentPage + 1,
+    pageNumber: maxPageIndex + 1,
+    totalSize: files.length
+  })
 }
 
 ipcMain.handle('open-zip', (event: IpcMainInvokeEvent) => {
-  dialog.showOpenDialog(mainWindow!, {
+  mainWindow && dialog.showOpenDialog(mainWindow, {
     title: 'Select a Zip File',
     defaultPath: dir,
     filters: [{
@@ -157,8 +162,8 @@ ipcMain.handle('open-zip', (event: IpcMainInvokeEvent) => {
     const filePath = value.filePaths[0]
     if (filePath) {
       console.log(filePath)
-      const lastIndexOfSep = filePath.lastIndexOf(sep);
-      dir = filePath.substring(0, lastIndexOfSep);
+      const lastIndexOfSep = filePath.lastIndexOf(sep)
+      dir = filePath.substring(0, lastIndexOfSep)
 
       const index = filePath.lastIndexOf(sep)
       const filename = filePath.substring(index + 1)
@@ -171,11 +176,11 @@ ipcMain.handle('open-zip', (event: IpcMainInvokeEvent) => {
 
 ipcMain.handle('show-prev', (event: IpcMainInvokeEvent) => {
   if (currentPage > 0) {
-    currentPage--;
+    currentPage--
   } else {
     currentPage = maxPageIndex
   }
-  logPageInfo()
+  logPageInfo(event.sender)
   sendImageData(event.sender)
 })
 
@@ -185,7 +190,7 @@ ipcMain.handle('show-next', (event: IpcMainInvokeEvent) => {
   } else {
     currentPage++
   }
-  logPageInfo()
+  logPageInfo(event.sender)
   sendImageData(event.sender)
 })
 
