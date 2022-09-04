@@ -15,10 +15,12 @@ import fs from 'fs'
 import { sep } from 'path'
 import { debounce } from '@/utils/utils'
 import { PageInfo } from '@/types/common'
-import { readConfigFile, writeConfigFile } from '@/config'
+import { readConfigFile, writeConfigFile, Path } from '@/config'
 
 let mainWindow: BrowserWindow | null
 const appConfig = readConfigFile()
+
+let currentOpenType: 'folder' | 'archive' = 'archive'
 
 const createWindow = () => {
   console.log(appConfig.window.position.x, appConfig.window.position.y)
@@ -121,7 +123,7 @@ let files: JSZip.JSZipObject[] = []
 let currentPage = 0
 const pageSize = 10
 let maxPageIndex = 0
-let dir = 'C:\\'
+let dir = appConfig.history.currentDir
 // let zipname: string = ''
 
 const sendImageData = (sender: WebContents) => {
@@ -174,9 +176,28 @@ const logPageInfo = (sender: WebContents) => {
   } as PageInfo)
 }
 
-ipcMain.handle('open-zip', (event: IpcMainInvokeEvent) => {
+const updateHistory = (sender: WebContents, currentDir: string, pathItem: Path) => {
+  const history = appConfig.history
+  history.currentDir = currentDir
+  const newItems = history.paths.filter(item => item.fullpath !== pathItem.fullpath)
+  newItems.unshift(pathItem)
+  if (newItems.length > history.maxCount) {
+    newItems.pop()
+  }
+  history.paths = newItems
+  currentOpenType = pathItem.type
+  sender.send('update-history', history.paths)
+  debounce(() => writeConfigFile(appConfig), 500)()
+}
+
+ipcMain.handle('window-ready', (event: IpcMainInvokeEvent) => {
+  console.log('window-ready')
+  event.sender.send('update-history', appConfig.history.paths)
+})
+
+ipcMain.handle('open-archive', (event: IpcMainInvokeEvent) => {
   mainWindow && dialog.showOpenDialog(mainWindow, {
-    title: 'Select a Zip File',
+    title: 'Select a Archive File',
     defaultPath: dir,
     filters: [{
       name: 'zip',
@@ -190,13 +211,23 @@ ipcMain.handle('open-zip', (event: IpcMainInvokeEvent) => {
       const lastIndexOfSep = filePath.lastIndexOf(sep)
       dir = filePath.substring(0, lastIndexOfSep)
 
-      const index = filePath.lastIndexOf(sep)
-      const filename = filePath.substring(index + 1)
+      const index = filePath.lastIndexOf('.')
+      const filename = filePath.substring(lastIndexOfSep + 1, index)
       const sender = event.sender
       sender.send('zip-filename', filename)
       readZipFile(sender, filePath)
+
+      updateHistory(sender, dir, {
+        shortname: filename,
+        fullpath: filePath,
+        type: 'archive'
+      })
     }
   })
+})
+
+ipcMain.handle('open-folder', (event: IpcMainInvokeEvent) => {
+  //
 })
 
 ipcMain.handle('show-prev', (event: IpcMainInvokeEvent) => {

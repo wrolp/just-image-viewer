@@ -11,12 +11,18 @@
 
     <tippy ref="fileMenuRef" tag="button" content-tag="div"
            class="file-menu" trigger="click" :interactive="true">
-      <template #default></template>
+      <template #default><div style="display: none;"></div></template>
       <template #content>
         <div class="menu-container">
-          <div class="menu-item">Open Zip</div>
-          <div class="menu-item">Open Folder</div>
+          <div class="menu-item" @click="handleOpenArhcive">Open Archive</div>
+          <div class="menu-item" @click="handleOpenFolder">Open Folder</div>
           <hr class="menu-seperator" />
+          <div class="menu-history">
+            <div v-for="item in historyItems" class="menu-item" :key="item.shortname"
+              @click="handleOpenItem(item.type, item.fullpath)">
+              {{ item.shortname }}
+            </div>
+          </div>
         </div>
       </template>
     </tippy>
@@ -28,6 +34,7 @@ import { onMounted, onUnmounted, ref } from 'vue'
 import { PageInfo } from '@/types/common'
 import { ipcRenderer, IpcRendererEvent } from 'electron'
 import { debounce } from '@/utils/utils'
+import { Path } from '@/config'
 import TitleBar from '@/components/TitleBar.vue'
 import FloatButton from '@/components/FloatButton.vue'
 
@@ -43,6 +50,7 @@ const height = ref(600)
 const flipButtonTop = ref(600 / 2)
 const pageInfo = ref<PageInfo>()
 const fileMenuRef = ref()
+const historyItems = ref<Path[]>([])
 
 const resizeDebounce = debounce(() => resize(), 50)
 
@@ -63,9 +71,14 @@ onMounted(() => {
   ipcRenderer.on('page-info', (event: IpcRendererEvent, pi: PageInfo) => {
     pageInfo.value = pi
   })
+  ipcRenderer.on('update-history', (event: IpcRendererEvent, history: Path[]) => {
+    historyItems.value = history
+  })
 
   resize()
   window.addEventListener('resize', resizeDebounce)
+
+  ipcRenderer.invoke('window-ready')
 })
 
 onUnmounted(() => {
@@ -98,9 +111,15 @@ const openFile = () => {
   fileMenuRef.value.$el.click()
 }
 
-// hide(): boolean {
-//   return true
-// }
+const handleOpenArhcive = () => {
+  ipcRenderer.invoke('open-archive')
+  fileMenuRef.value.hide()
+}
+
+const handleOpenFolder = () => {
+  ipcRenderer.invoke('open-folder')
+  fileMenuRef.value.hide()
+}
 
 </script>
 
@@ -181,9 +200,11 @@ const openFile = () => {
 
 .file-menu {
   position: absolute;
-  top: 20px;
-  right: 78px;
+  top: 19px;
+  right: 73px;
   z-index: 9999;
+  background-color: transparent;
+  color: transparent;
 }
 
 .menu-container {
@@ -207,6 +228,12 @@ const openFile = () => {
   .menu-seperator {
     margin: 5px 0;
     border-top: 1px solid #464646;
+  }
+
+  .menu-history {
+    overflow-x: hidden;
+    overflow-y: scroll;
+    max-height: 300px;
   }
 }
 </style>

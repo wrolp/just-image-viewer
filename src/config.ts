@@ -16,9 +16,16 @@ export interface WindowConfig {
   size: Size
 }
 
+export interface Path {
+  shortname: string
+  fullpath: string
+  type: 'folder' | 'archive'
+}
+
 export interface History {
   maxCount: number
-  paths: string[]
+  currentDir: string
+  paths: Path[]
 }
 
 export interface AppConfig {
@@ -59,6 +66,7 @@ export const readConfigFile = () => {
     },
     history: {
       maxCount: 20,
+      currentDir: os.homedir(),
       paths: []
     }
   } as AppConfig
