@@ -13,23 +13,32 @@ import {
 import JSZip from 'jszip'
 import fs from 'fs'
 import { sep } from 'path'
+import { debounce } from '@/utils/utils'
+import { PageInfo } from '@/types/common'
+import { readConfigFile, writeConfigFile } from '@/config'
 
 let mainWindow: BrowserWindow | null
-const windowOptions: BrowserWindowConstructorOptions = {
-  height: 600,
-  width: 800,
-  webPreferences: {
-    // preload: path.join(__dirname, "preload.js"),
-    webSecurity: false,
-    nodeIntegration: true,
-    contextIsolation: false
-  },
-  show: false,
-  frame: false,
-  backgroundColor: '#000'
-}
+const appConfig = readConfigFile()
 
-function createWindow () {
+const createWindow = () => {
+  console.log(appConfig.window.position.x, appConfig.window.position.y)
+
+  const windowOptions: BrowserWindowConstructorOptions = {
+    x: appConfig.window.position.x,
+    y: appConfig.window.position.y,
+    width: appConfig.window.size.w,
+    height: appConfig.window.size.h,
+    webPreferences: {
+      // preload: path.join(__dirname, "preload.js"),
+      webSecurity: false,
+      nodeIntegration: true,
+      contextIsolation: false
+    },
+    show: false,
+    frame: false,
+    backgroundColor: '#000'
+  }
+
   // Create the browser window.
   mainWindow = new BrowserWindow(windowOptions)
 
@@ -55,6 +64,22 @@ function createWindow () {
   mainWindow.on('closed', () => { mainWindow = null })
   mainWindow.on('maximize', () => mainWindow && mainWindow.webContents.send('maximized', true))
   mainWindow.on('unmaximize', () => mainWindow && mainWindow.webContents.send('maximized', false))
+  mainWindow.on('resize', debounce(() => {
+    if (mainWindow) {
+      const size = mainWindow.getSize()
+      appConfig.window.size.w = size[0]
+      appConfig.window.size.h = size[1]
+      writeConfigFile(appConfig)
+    }
+  }, 1000))
+  mainWindow.on('move', debounce(() => {
+    if (mainWindow) {
+      const position = mainWindow.getPosition()
+      appConfig.window.position.x = position[0]
+      appConfig.window.position.y = position[1]
+      writeConfigFile(appConfig)
+    }
+  }, 1000))
 
   console.log(__dirname)
 }
@@ -99,7 +124,7 @@ let maxPageIndex = 0
 let dir = 'C:\\'
 // let zipname: string = ''
 
-function sendImageData (sender: WebContents) {
+const sendImageData = (sender: WebContents) => {
   if (files.length > 0) {
     const start = currentPage * pageSize
     const end = (currentPage + 1) * pageSize
@@ -117,7 +142,7 @@ function sendImageData (sender: WebContents) {
   }
 }
 
-function readZipFile (sender: WebContents, filePath: string): void {
+const readZipFile = (sender: WebContents, filePath: string) => {
   fs.readFile(filePath, (err, data: Buffer) => {
     if (err) throw err
 
@@ -140,13 +165,13 @@ function readZipFile (sender: WebContents, filePath: string): void {
   })
 }
 
-function logPageInfo (sender: WebContents) {
+const logPageInfo = (sender: WebContents) => {
   console.log('current page: ' + (currentPage + 1), 'page number: ' + (maxPageIndex + 1), 'size: ' + files.length)
   sender.send('page-info', {
     currentPage: currentPage + 1,
     pageNumber: maxPageIndex + 1,
     totalSize: files.length
-  })
+  } as PageInfo)
 }
 
 ipcMain.handle('open-zip', (event: IpcMainInvokeEvent) => {
