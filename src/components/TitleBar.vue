@@ -3,28 +3,20 @@
     <div class="title-drag-region"></div>
     <div class="window-title">{{title}}</div>
     <div class="window-controls-container">
-      <div class="window-icon window-cog" @click="openZip">
-        <i class="fa fa-cog"></i>
-        <!-- <tippy interactive arrow trigger="click" theme="popover">
-          <template #default>
-            <i class="fa fa-cog"></i>
-          </template>
-          <template #content="{openZip}">
-            <button @click="openZip">ZIP</button>
-          </template>
-        </tippy> -->
+      <div class="window-icon" @click="openFile">
+        <font-awesome-icon size="lg" icon="fa-solid fa-ellipsis-vertical" />
       </div>
-      <div class="window-icon window-minimize" @click="minimize">
-        <i class="fa fa-window-minimize"></i>
+      <div class="window-icon" @click="minimize">
+        <font-awesome-icon size="lg" icon="fa-solid fa-window-minimize" />
       </div>
-      <div v-if="!maximized" class="window-icon window-maximize" @click="maximize">
-        <i class="fa fa-window-maximize"></i>
+      <div v-if="!maximized" class="window-icon" @click="maximize">
+        <font-awesome-icon size="lg" icon="fa-solid fa-window-maximize" />
       </div>
-      <div v-else class="window-icon window-restore" @click="restore">
-        <i class="fa fa-window-restore"></i>
+      <div v-else class="window-icon" @click="restore">
+        <font-awesome-icon size="lg" icon="fa-solid fa-window-restore" />
       </div>
       <div class="window-icon window-close" @click="close">
-        <i class="fa fa-close"></i>
+        <font-awesome-icon size="lg" icon="fa-solid fa-xmark" />
       </div>
     </div>
   </div>
@@ -44,17 +36,17 @@ export default defineComponent({
   props: {
     title: { type: String, default: '' }
   },
-  setup (props) {
+  setup (props, ctx) {
     const title = ref('')
     const maximized = ref(false)
 
     watch(() => props.title, () => { title.value = props.title })
 
-    const openZip = () => { ipcRenderer.invoke('open-zip') }
-    const minimize = () => { ipcRenderer.invoke('minimize-window') }
-    const maximize = () => { ipcRenderer.invoke('maximize-window') }
-    const restore = () => { ipcRenderer.invoke('restore-window') }
-    const close = () => { ipcRenderer.invoke('close-window') }
+    const openFile = () => ctx.emit('on-file')
+    const minimize = () => ipcRenderer.invoke('minimize-window')
+    const maximize = () => ipcRenderer.invoke('maximize-window')
+    const restore = () => ipcRenderer.invoke('restore-window')
+    const close = () => ipcRenderer.invoke('close-window')
 
     onMounted(() => {
       ipcRenderer.on('maximized', (event: IpcRendererEvent, value: boolean) => {
@@ -63,7 +55,7 @@ export default defineComponent({
     })
 
     return {
-      openZip,
+      openFile,
       maximized,
       minimize,
       maximize,
