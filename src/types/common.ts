@@ -4,3 +4,8 @@ export interface PageInfo {
   pageNumber: number
   totalSize: number
 }
+
+export interface ImgItem {
+  filename: string
+  image: string
+}

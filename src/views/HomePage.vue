@@ -1,6 +1,6 @@
 <template>
   <div>
-    <title-bar :title="zipFileName" @on-file="openFile" />
+    <title-bar :title="zipFileName" @on-file="displayFileMenu" />
     <div class="image-container" :style="{ height: height + 'px' }">
       <img v-for="item in images" :src="item.image" :title="item.filename" :width="width" :key="item.filename"/>
     </div>
@@ -11,7 +11,7 @@
 
     <tippy ref="fileMenuRef" tag="button" content-tag="div"
            class="file-menu" trigger="click" :interactive="true">
-      <template #default><div style="display: none;"></div></template>
+      <template #default></template>
       <template #content>
         <div class="menu-container">
           <div class="menu-item" @click="handleOpenArhcive">Open Archive</div>
@@ -31,17 +31,12 @@
 
 <script lang="ts" setup>
 import { onMounted, onUnmounted, ref } from 'vue'
-import { PageInfo } from '@/types/common'
+import { PageInfo, ImgItem } from '@/types/common'
 import { ipcRenderer, IpcRendererEvent } from 'electron'
 import { debounce } from '@/utils/utils'
 import { Path } from '@/config'
 import TitleBar from '@/components/TitleBar.vue'
 import FloatButton from '@/components/FloatButton.vue'
-
-interface ImgItem {
-  filename: string
-  image: string
-}
 
 const images = ref([] as ImgItem[])
 const zipFileName = ref('')
@@ -55,8 +50,6 @@ const historyItems = ref<Path[]>([])
 const resizeDebounce = debounce(() => resize(), 50)
 
 onMounted(() => {
-  // console.log(getCurrentInstance())
-  // console.log('mounted')
   ipcRenderer.on('image-content', (event: IpcRendererEvent, arg: ImgItem) => {
     console.log(arg.filename)
     images.value.push(arg)
@@ -64,7 +57,10 @@ onMounted(() => {
       return left.filename.localeCompare(right.filename)
     })
   })
-  ipcRenderer.on('zip-filename', (event: IpcRendererEvent, filename: string) => {
+  ipcRenderer.on('image-list', (event: IpcRendererEvent, arg: ImgItem[]) => {
+    images.value = arg
+  })
+  ipcRenderer.on('shortname', (event: IpcRendererEvent, filename: string) => {
     zipFileName.value = filename
     images.value = []
   })
@@ -107,7 +103,7 @@ const resize = () => {
   flipButtonTop.value = clientHeight / 2 - 40
 }
 
-const openFile = () => {
+const displayFileMenu = () => {
   fileMenuRef.value.$el.click()
 }
 
@@ -118,6 +114,11 @@ const handleOpenArhcive = () => {
 
 const handleOpenFolder = () => {
   ipcRenderer.invoke('open-folder')
+  fileMenuRef.value.hide()
+}
+
+const handleOpenItem = (type: string, path: string) => {
+  ipcRenderer.invoke('open-history', type, path)
   fileMenuRef.value.hide()
 }
 

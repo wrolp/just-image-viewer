@@ -16,10 +16,12 @@ export interface WindowConfig {
   size: Size
 }
 
+export type OpenType = 'folder' | 'archive'
+
 export interface Path {
   shortname: string
   fullpath: string
-  type: 'folder' | 'archive'
+  type: OpenType
 }
 
 export interface History {

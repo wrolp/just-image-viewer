@@ -6,7 +6,7 @@
       bottom: bottom != -999999 ? (bottom + 'px') : undefined,
       width: width + 'px',
       height: height + 'px'
-    }">
+    }" onselectstart="return false">
     <template v-if="pageInfo">
       {{pageInfo.currentPage}} / {{pageInfo.pageNumber}} <br/>
       {{pageInfo.totalSize}}
@@ -81,6 +81,8 @@ export default defineComponent({
   background-color: rgba(255, 0, 0, 0.493);
   z-index: 8888;
   color: transparent;
+  cursor: pointer;
+
   & > i {
     display: none;
     &:hover {

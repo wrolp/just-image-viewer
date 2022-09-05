@@ -14,13 +14,13 @@ import JSZip from 'jszip'
 import fs from 'fs'
 import { sep } from 'path'
 import { debounce } from '@/utils/utils'
-import { PageInfo } from '@/types/common'
-import { readConfigFile, writeConfigFile, Path } from '@/config'
+import { PageInfo, ImgItem } from '@/types/common'
+import { readConfigFile, writeConfigFile, Path, OpenType } from '@/config'
 
 let mainWindow: BrowserWindow | null
 const appConfig = readConfigFile()
 
-let currentOpenType: 'folder' | 'archive' = 'archive'
+let currentOpenType: OpenType = 'archive'
 
 const createWindow = () => {
   console.log(appConfig.window.position.x, appConfig.window.position.y)
@@ -86,61 +86,43 @@ const createWindow = () => {
   console.log(__dirname)
 }
 
-// ipcMain.handle('list-image-files', (event: IpcMainInvokeEvent) => {
-//   event.sender.send('image-files', fileNames.slice(0, pageSize))
-// })
-
 ipcMain.handle('close-window', () => mainWindow && mainWindow.close())
 ipcMain.handle('minimize-window', () => mainWindow && mainWindow.minimize())
 ipcMain.handle('maximize-window', () => mainWindow && mainWindow.maximize())
 ipcMain.handle('restore-window', () => mainWindow && mainWindow.restore())
 
-// ipcMain.handle('next-page', (event: IpcMainInvokeEvent) => {
-//     console.log('handle next-page')
-//     if (currentPage >= Math.floor(fileNames.length / pageSize)) {
-//         currentPage = 0
-//     } else {
-//         currentPage++
-//     }
-//     console.log('current page: ' + currentPage)
-//     let files: string[] = fileNames.slice(currentPage * pageSize, (currentPage + 1) * pageSize)
-//     event.sender.send('image-files', files)
-// })
-
-// ipcMain.handle('prev-page', (event: IpcMainInvokeEvent) => {
-//     if (currentPage > 0) {
-//         currentPage--;
-//     } else {
-//         currentPage = Math.floor(fileNames.length / pageSize)
-//     }
-//     let files: string[] = fileNames.slice(currentPage * pageSize, (currentPage + 1) * pageSize)
-//     event.sender.send('image-files', files)
-// })
-
-let files: JSZip.JSZipObject[] = []
-// let currentIndex: number = 0
+let files: JSZip.JSZipObject[] | string[] = []
 
 let currentPage = 0
 const pageSize = 10
 let maxPageIndex = 0
 let dir = appConfig.history.currentDir
-// let zipname: string = ''
 
 const sendImageData = (sender: WebContents) => {
-  if (files.length > 0) {
-    const start = currentPage * pageSize
-    const end = (currentPage + 1) * pageSize
+  const start = currentPage * pageSize
+  const end = (currentPage + 1) * pageSize
+  if (currentOpenType === 'archive' && files.length > 0) {
     for (let i = start; i < end; i++) {
       if (i > files.length - 1) {
         break
       }
-      files[i].async('base64').then((content: string) => {
+      const file = files[i] as JSZip.JSZipObject
+      file.async('base64').then((content: string) => {
         sender.send('image-content', {
-          filename: files[i].name,
+          filename: file.name,
           image: 'data:image/png;base64,' + content
-        })
+        } as ImgItem)
       })
     }
+  } else if (currentOpenType === 'folder' && files.length > 0) {
+    const page = files.slice(start, end) as string[]
+    const imageItems = page.map((filename: string) => {
+      return {
+        filename,
+        image: dir + '/' + filename
+      } as ImgItem
+    })
+    sender.send('image-list', imageItems)
   }
 }
 
@@ -155,7 +137,7 @@ const readZipFile = (sender: WebContents, filePath: string) => {
       currentPage = 0
       zip.forEach((relativePath: string, file: JSZip.JSZipObject) => {
         // console.log(relativePath)
-        files.push(file)
+        (files as JSZip.JSZipObject[]).push(file)
       })
       maxPageIndex = Math.floor(files.length / pageSize)
       if (files.length % pageSize === 0) {
@@ -185,13 +167,69 @@ const updateHistory = (sender: WebContents, currentDir: string, pathItem: Path) 
     newItems.pop()
   }
   history.paths = newItems
-  currentOpenType = pathItem.type
   sender.send('update-history', history.paths)
   debounce(() => writeConfigFile(appConfig), 500)()
 }
 
+const openArchiveFile = (sender: WebContents, filePath: string) => {
+  console.log(`open file: ${filePath}`)
+  const lastIndexOfSep = filePath.lastIndexOf(sep)
+  dir = filePath.substring(0, lastIndexOfSep)
+
+  const index = filePath.lastIndexOf('.')
+  const filename = filePath.substring(lastIndexOfSep + 1, index)
+  sender.send('shortname', filename)
+  readZipFile(sender, filePath)
+
+  currentOpenType = 'archive'
+
+  updateHistory(sender, dir, {
+    shortname: filename,
+    fullpath: filePath,
+    type: 'archive'
+  })
+}
+
+const openFolder = (sender: WebContents, dirPath: string) => {
+  console.log(`open folder: ${dirPath}`)
+
+  dir = dirPath
+  const lastIndexOfSep = dirPath.lastIndexOf(sep)
+  const shortname = dirPath.substring(lastIndexOfSep + 1)
+  sender.send('shortname', shortname)
+
+  fs.readdir(dir, (err: NodeJS.ErrnoException | null, fileItems: string[]) => {
+    if (err) {
+      console.error(err)
+      return
+    }
+    files = fileItems.filter((v: string) => {
+      return (
+        v.endsWith('jpg') ||
+        v.endsWith('JPG') ||
+        v.endsWith('png') ||
+        v.endsWith('PNG') ||
+        v.endsWith('jpeg') ||
+        v.endsWith('JPEG') ||
+        v.endsWith('webp') ||
+        v.endsWith('WEBP')
+      )
+    })
+    maxPageIndex = Math.floor(files.length / pageSize)
+    logPageInfo(sender)
+    sendImageData(sender)
+  })
+
+  currentOpenType = 'folder'
+
+  updateHistory(sender, dir, {
+    shortname,
+    fullpath: dirPath,
+    type: 'folder'
+  })
+}
+
 ipcMain.handle('window-ready', (event: IpcMainInvokeEvent) => {
-  console.log('window-ready')
   event.sender.send('update-history', appConfig.history.paths)
 })
 
@@ -199,35 +237,32 @@ ipcMain.handle('open-archive', (event: IpcMainInvokeEvent) => {
   mainWindow && dialog.showOpenDialog(mainWindow, {
     title: 'Select a Archive File',
     defaultPath: dir,
-    filters: [{
-      name: 'zip',
-      extensions: ['zip']
-    }]
+    filters: [{ name: 'zip', extensions: ['zip'] }]
   }).then((value: OpenDialogReturnValue) => {
-    // console.log(value)
-    const filePath = value.filePaths[0]
-    if (filePath) {
-      console.log(filePath)
-      const lastIndexOfSep = filePath.lastIndexOf(sep)
-      dir = filePath.substring(0, lastIndexOfSep)
-
-      const index = filePath.lastIndexOf('.')
-      const filename = filePath.substring(lastIndexOfSep + 1, index)
-      const sender = event.sender
-      sender.send('zip-filename', filename)
-      readZipFile(sender, filePath)
-
-      updateHistory(sender, dir, {
-        shortname: filename,
-        fullpath: filePath,
-        type: 'archive'
-      })
+    if (value.filePaths.length > 0) {
+      openArchiveFile(event.sender, value.filePaths[0])
     }
   })
 })
 
 ipcMain.handle('open-folder', (event: IpcMainInvokeEvent) => {
-  //
+  mainWindow && dialog.showOpenDialog(mainWindow, {
+    title: 'Select a Folder',
+    defaultPath: dir,
+    properties: ['openDirectory']
+  }).then((value: OpenDialogReturnValue) => {
+    if (value.filePaths.length > 0) {
+      openFolder(event.sender, value.filePaths[0])
+    }
+  })
+})
+
+ipcMain.handle('open-history', (event: IpcMainInvokeEvent, type: OpenType, path: string) => {
+  if (type === 'archive') {
+    openArchiveFile(event.sender, path)
+  } else {
+    openFolder(event.sender, path)
+  }
 })
 
 ipcMain.handle('show-prev', (event: IpcMainInvokeEvent) => {
