@@ -11,7 +11,11 @@ import {
   faEllipsisVertical,
   faWindowMinimize,
   faWindowMaximize,
-  faWindowRestore
+  faWindowRestore,
+  faFolder,
+  faFileZipper,
+  faCircleDot,
+  faListUl
 } from '@fortawesome/free-solid-svg-icons'
 
 library.add(
@@ -19,7 +23,11 @@ library.add(
   faEllipsisVertical,
   faWindowMaximize,
   faWindowMinimize,
-  faWindowRestore
+  faWindowRestore,
+  faFolder,
+  faFileZipper,
+  faCircleDot,
+  faListUl
 )
 
 const app = createApp(App)

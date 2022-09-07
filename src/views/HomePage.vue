@@ -14,12 +14,20 @@
       <template #default></template>
       <template #content>
         <div class="menu-container">
-          <div class="menu-item" @click="handleOpenArhcive">Open Archive</div>
-          <div class="menu-item" @click="handleOpenFolder">Open Folder</div>
+          <div class="menu-item" @click="handleOpenArhcive">
+            <font-awesome-icon icon="fa-solid fa-file-zipper" style="color: #28a745" />
+            <span style="margin-left: 8px;">Open Archive</span>
+          </div>
+          <div class="menu-item" @click="handleOpenFolder">
+            <font-awesome-icon icon="fa-solid fa-folder" style="color: #007bff" />
+            <span style="margin-left: 5px;">Open Folder</span>
+          </div>
           <hr class="menu-seperator" />
           <div class="menu-history">
             <div v-for="item in historyItems" class="menu-item" :key="item.shortname"
-              @click="handleOpenItem(item.type, item.fullpath)">
+              @click="handleOpenItem(item.type, item.fullpath)" :title="item.shortname">
+              <font-awesome-icon v-if="item.type === 'archive'" size="sm" icon="fa-solid fa-circle-dot" style="color: #28a745" />
+              <font-awesome-icon v-else icon="fa-solid fa-list-ul" style="color: #007bff" />
               {{ item.shortname }}
             </div>
           </div>
