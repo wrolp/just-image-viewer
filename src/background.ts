@@ -86,17 +86,24 @@ const createWindow = () => {
   console.log(__dirname)
 }
 
+interface ImageItem {
+  filename: string
+  createTime: Date
+}
+
 ipcMain.handle('close-window', () => mainWindow && mainWindow.close())
 ipcMain.handle('minimize-window', () => mainWindow && mainWindow.minimize())
 ipcMain.handle('maximize-window', () => mainWindow && mainWindow.maximize())
 ipcMain.handle('restore-window', () => mainWindow && mainWindow.restore())
 
-let files: JSZip.JSZipObject[] | string[] = []
+let files: JSZip.JSZipObject[] | ImageItem[] = []
+let totalFiles: ImageItem[] = []
 
 let currentPage = 0
-const pageSize = 10
+const pageSize = 50
 let maxPageIndex = 0
 let dir = appConfig.history.currentDir
+const desc = true
 
 const sendImageData = (sender: WebContents) => {
   const start = currentPage * pageSize
@@ -115,11 +122,11 @@ const sendImageData = (sender: WebContents) => {
       })
     }
   } else if (currentOpenType === 'folder' && files.length > 0) {
-    const page = files.slice(start, end) as string[]
-    const imageItems = page.map((filename: string) => {
+    const page = files.slice(start, end) as ImageItem[]
+    const imageItems = page.map((imageItem: ImageItem) => {
       return {
-        filename,
-        image: dir + '/' + filename
+        filename: imageItem.filename,
+        image: dir + '/' + imageItem.filename
       } as ImgItem
     })
     sender.send('image-list', imageItems)
@@ -198,12 +205,13 @@ const openFolder = (sender: WebContents, dirPath: string) => {
   const shortname = dirPath.substring(lastIndexOfSep + 1)
   sender.send('shortname', shortname)
 
-  fs.readdir(dir, (err: NodeJS.ErrnoException | null, fileItems: string[]) => {
+  fs.readdir(dir, async (err: NodeJS.ErrnoException | null, fileItems: string[]) => {
     if (err) {
       console.error(err)
       return
     }
-    files = fileItems.filter((v: string) => {
+
+    const images = fileItems.filter((v: string) => {
       return (
         v.endsWith('jpg') ||
         v.endsWith('JPG') ||
@@ -215,6 +223,25 @@ const openFolder = (sender: WebContents, dirPath: string) => {
         v.endsWith('WEBP')
       )
     })
+
+    const imageItems: ImageItem[] = []
+    for (let i = 0; i < images.length; i++) {
+      const stats = fs.statSync(dir + '/' + images[i])
+      imageItems.push({
+        filename: images[i],
+        createTime: stats.birthtime
+      })
+    }
+    files = imageItems.sort((a, b) => {
+      if (a.createTime.getTime() > b.createTime.getTime()) {
+        return desc ? -1 : 1
+      } else {
+        return desc ? 1 : -1
+      }
+    })
+
+    totalFiles = JSON.parse(JSON.stringify(files))
+
     maxPageIndex = Math.floor(files.length / pageSize)
     logPageInfo(sender)
     sendImageData(sender)
@@ -263,6 +290,26 @@ ipcMain.handle('open-history', (event: IpcMainInvokeEvent, type: OpenType, path:
   } else {
     openFolder(event.sender, path)
   }
+})
+
+ipcMain.handle('search', (event: IpcMainInvokeEvent, term: string) => {
+  console.log(term)
+
+  term = term.trim()
+
+  if (term) {
+    files = (totalFiles as ImageItem[]).filter((item: ImageItem) => {
+      return item.filename.toLocaleLowerCase().indexOf(term.toLocaleLowerCase()) > -1
+    })
+  } else {
+    files = JSON.parse(JSON.stringify(totalFiles))
+  }
+
+  currentPage = 0
+  maxPageIndex = Math.floor(files.length / pageSize)
+
+  logPageInfo(event.sender)
+  sendImageData(event.sender)
 })
 
 ipcMain.handle('show-prev', (event: IpcMainInvokeEvent) => {

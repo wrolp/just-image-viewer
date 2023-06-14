@@ -15,7 +15,8 @@ import {
   faFolder,
   faFileZipper,
   faCircleDot,
-  faListUl
+  faListUl,
+  faMagnifyingGlass
 } from '@fortawesome/free-solid-svg-icons'
 
 library.add(
@@ -27,7 +28,8 @@ library.add(
   faFolder,
   faFileZipper,
   faCircleDot,
-  faListUl
+  faListUl,
+  faMagnifyingGlass
 )
 
 const app = createApp(App)
@@ -41,7 +43,8 @@ app.use(VueTippy, {
     placement: 'bottom',
     allowHTML: true,
     arrow: true,
-    trigger: 'click'
+    trigger: 'click',
+    interactive: true
   } // => Global default options * see all props
 })
 

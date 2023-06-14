@@ -1,6 +1,10 @@
 <template>
   <div>
-    <title-bar :title="zipFileName" @on-file="displayFileMenu" />
+    <title-bar
+      :title="shortname"
+      :can-search="isFolder"
+      @on-file="displayFileMenu"
+      @on-search="displaySearchBar" />
     <div class="image-container" :style="{ height: height + 'px' }">
       <img v-for="item in images" :src="item.image" :title="item.filename" :width="width" :key="item.filename"/>
     </div>
@@ -9,8 +13,7 @@
     <float-button class="paging-button" :width=80 :height=60 icon="fa fa-chevron-right"
                   :top="flipButtonTop" :right="10" :pageInfo="pageInfo" @click="next"/>
 
-    <tippy ref="fileMenuRef" tag="button" content-tag="div"
-           class="file-menu" trigger="click" :interactive="true">
+    <tippy ref="fileMenuRef" tag="button" content-tag="div" class="file-menu">
       <template #default></template>
       <template #content>
         <div class="menu-container">
@@ -34,6 +37,15 @@
         </div>
       </template>
     </tippy>
+
+    <tippy ref="searchBarRef" tag="button" coontent-tag="div" :arrow=false class="search-bar">
+      <template #default></template>
+      <template #content>
+        <div class="search-form">
+          <input v-model="searchValue" @keyup.enter="handleSearch" style="backgroud: black;" />
+        </div>
+      </template>
+    </tippy>
   </div>
 </template>
 
@@ -47,29 +59,32 @@ import TitleBar from '@/components/TitleBar.vue'
 import FloatButton from '@/components/FloatButton.vue'
 
 const images = ref([] as ImgItem[])
-const zipFileName = ref('')
+const shortname = ref('')
 const width = ref(800)
 const height = ref(600)
 const flipButtonTop = ref(600 / 2)
 const pageInfo = ref<PageInfo>()
 const fileMenuRef = ref()
+const searchBarRef = ref()
 const historyItems = ref<Path[]>([])
+const isFolder = ref(false)
 
 const resizeDebounce = debounce(() => resize(), 50)
 
 onMounted(() => {
   ipcRenderer.on('image-content', (event: IpcRendererEvent, arg: ImgItem) => {
-    console.log(arg.filename)
+    isFolder.value = false
     images.value.push(arg)
     images.value = images.value.sort((left, right) => {
       return left.filename.localeCompare(right.filename)
     })
   })
   ipcRenderer.on('image-list', (event: IpcRendererEvent, arg: ImgItem[]) => {
+    isFolder.value = true
     images.value = arg
   })
   ipcRenderer.on('shortname', (event: IpcRendererEvent, filename: string) => {
-    zipFileName.value = filename
+    shortname.value = filename
     images.value = []
   })
   ipcRenderer.on('page-info', (event: IpcRendererEvent, pi: PageInfo) => {
@@ -89,15 +104,11 @@ onUnmounted(() => {
   window.removeEventListener('resize', resizeDebounce)
 })
 
-const closeWindow = () => {
-  ipcRenderer.invoke('close-app')
-}
-
+const closeWindow = () => ipcRenderer.invoke('close-app')
 const prev = () => {
   images.value = []
   ipcRenderer.invoke('show-prev')
 }
-
 const next = () => {
   images.value = []
   ipcRenderer.invoke('show-next')
@@ -111,9 +122,8 @@ const resize = () => {
   flipButtonTop.value = clientHeight / 2 - 40
 }
 
-const displayFileMenu = () => {
-  fileMenuRef.value.$el.click()
-}
+const displayFileMenu = () => fileMenuRef.value.$el.click()
+const displaySearchBar = () => searchBarRef.value.$el.click()
 
 const handleOpenArhcive = () => {
   ipcRenderer.invoke('open-archive')
@@ -128,6 +138,13 @@ const handleOpenFolder = () => {
 const handleOpenItem = (type: string, path: string) => {
   ipcRenderer.invoke('open-history', type, path)
   fileMenuRef.value.hide()
+}
+
+const searchValue = ref('')
+const handleSearch = () => {
+  console.log(searchValue.value)
+  images.value = []
+  ipcRenderer.invoke('search', searchValue.value)
 }
 
 </script>
@@ -210,8 +227,17 @@ const handleOpenItem = (type: string, path: string) => {
 .file-menu {
   position: absolute;
   top: 19px;
-  right: 73px;
+  right: 100px;
   z-index: 9999;
+  background-color: transparent;
+  color: transparent;
+}
+
+.search-bar {
+  position: absolute;
+  top: 15px;
+  z-index: 9999;
+  margin: 0 auto;
   background-color: transparent;
   color: transparent;
 }

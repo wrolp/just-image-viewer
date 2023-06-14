@@ -30,7 +30,7 @@ See [Configuration Reference](https://cli.vuejs.org/config/).
 
 ### Initialize
 ```
-npm i -g @vue/cli
+yarn global add @vue/cli
 ```
 
 ```
@@ -58,7 +58,7 @@ yarn add -D vue-cli-plugin-electron-builder electron
 ```
 
 ```
-npm i -g eslint
+yarn global add eslint
 ```
 
 ```

@@ -1,68 +1,55 @@
 <template>
   <div class="titlebar">
     <div class="title-drag-region"></div>
-    <div class="window-title">{{title}}</div>
+    <div class="window-title">{{ props.title }}</div>
     <div class="window-controls-container">
-      <div class="window-icon" @click="openFile">
+      <div v-if="props.canSearch" @click="search">
+        <font-awesome-icon size="lg" icon="fa-solid fa-magnifying-glass" />
+      </div>
+      <div @click="openFile">
         <font-awesome-icon size="lg" icon="fa-solid fa-ellipsis-vertical" />
       </div>
-      <div class="window-icon" @click="minimize">
+      <div @click="minimize">
         <font-awesome-icon size="lg" icon="fa-solid fa-window-minimize" />
       </div>
-      <div v-if="!maximized" class="window-icon" @click="maximize">
+      <div v-if="!maximized" @click="maximize">
         <font-awesome-icon size="lg" icon="fa-solid fa-window-maximize" />
       </div>
-      <div v-else class="window-icon" @click="restore">
+      <div v-else @click="restore">
         <font-awesome-icon size="lg" icon="fa-solid fa-window-restore" />
       </div>
-      <div class="window-icon window-close" @click="close">
+      <div @click="close">
         <font-awesome-icon size="lg" icon="fa-solid fa-xmark" />
       </div>
     </div>
   </div>
 </template>
 
-<script lang="ts">
+<script lang="ts" setup>
 import { ipcRenderer, IpcRendererEvent } from 'electron'
 import {
   ref,
-  watch,
   onMounted,
-  defineComponent
+  defineProps,
+  defineEmits
 } from 'vue'
 
-export default defineComponent({
-  name: 'title-bar',
-  props: {
-    title: { type: String, default: '' }
-  },
-  setup (props, ctx) {
-    const title = ref('')
-    const maximized = ref(false)
+const maximized = ref(false)
 
-    watch(() => props.title, () => { title.value = props.title })
+const props = defineProps<{ title: string, canSearch: boolean }>()
+const emit = defineEmits(['on-search', 'on-file'])
 
-    const openFile = () => ctx.emit('on-file')
-    const minimize = () => ipcRenderer.invoke('minimize-window')
-    const maximize = () => ipcRenderer.invoke('maximize-window')
-    const restore = () => ipcRenderer.invoke('restore-window')
-    const close = () => ipcRenderer.invoke('close-window')
+const search = () => emit('on-search')
+const openFile = () => emit('on-file')
+const minimize = () => ipcRenderer.invoke('minimize-window')
+const maximize = () => ipcRenderer.invoke('maximize-window')
+const restore = () => ipcRenderer.invoke('restore-window')
+const close = () => ipcRenderer.invoke('close-window')
 
-    onMounted(() => {
-      ipcRenderer.on('maximized', (event: IpcRendererEvent, value: boolean) => {
-        maximized.value = value
-      })
-    })
-
-    return {
-      openFile,
-      maximized,
-      minimize,
-      maximize,
-      restore,
-      close
-    }
-  }
+onMounted(() => {
+  ipcRenderer.on('maximized', (event: IpcRendererEvent, value: boolean) => {
+    maximized.value = value
+  })
 })
 </script>
 
@@ -122,23 +109,22 @@ export default defineComponent({
     position: relative;
     -webkit-app-region: no-drag;
     height: 100%;
-    width: 90px;
     // margin-left: auto;
 
-    .window-icon {
-        display: inline-block;
-        line-height: 22px;
-        height: 100%;
-        width: 30px;
-        font-size: 10px;
+    > div {
+      display: inline-block;
+      line-height: 22px;
+      height: 100%;
+      width: 30px;
+      font-size: 10px;
 
-        &:hover {
-          background-color: rgba(31, 136, 177, 0.459);
-        }
-    }
+      &:not(:last-child):hover {
+        background-color: rgba(31, 136, 177, 0.459);
+      }
 
-    .window-close:hover {
-      background-color: rgba(232, 17, 35, 0.9);
+      &:last-child:hover {
+        background-color: rgba(232, 17, 35, 0.9);
+      }
     }
 
     .window- {
