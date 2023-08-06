@@ -3,22 +3,22 @@
     <div class="title-drag-region"></div>
     <div class="window-title">{{ props.title }}</div>
     <div class="window-controls-container">
-      <div v-if="props.canSearch" @click="search">
+      <div class="window-icon" v-if="props.canSearch" @click="search">
         <font-awesome-icon size="lg" icon="fa-solid fa-magnifying-glass" />
       </div>
-      <div @click="openFile">
+      <div class="window-icon" @click="openFile">
         <font-awesome-icon size="lg" icon="fa-solid fa-ellipsis-vertical" />
       </div>
-      <div @click="minimize">
+      <div class="window-icon" @click="minimize">
         <font-awesome-icon size="lg" icon="fa-solid fa-window-minimize" />
       </div>
-      <div v-if="!maximized" @click="maximize">
+      <div v-if="!maximized" class="window-icon" @click="maximize">
         <font-awesome-icon size="lg" icon="fa-solid fa-window-maximize" />
       </div>
-      <div v-else @click="restore">
+      <div v-else class="window-icon" @click="restore">
         <font-awesome-icon size="lg" icon="fa-solid fa-window-restore" />
       </div>
-      <div @click="close">
+      <div class="window-icon window-close" @click="close">
         <font-awesome-icon size="lg" icon="fa-solid fa-xmark" />
       </div>
     </div>

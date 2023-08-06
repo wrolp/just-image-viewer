@@ -79,6 +79,7 @@ export default defineComponent({
 .float-area {
   position: fixed;
   background-color: rgba(255, 0, 0, 0.493);
+  border-radius: 10px;
   z-index: 8888;
   color: transparent;
   cursor: pointer;
