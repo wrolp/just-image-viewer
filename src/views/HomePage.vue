@@ -4,7 +4,8 @@
       :title="shortname"
       :can-search="isFolder"
       @on-file="displayFileMenu"
-      @on-search="displaySearchBar" />
+      @on-search="displaySearchBar"
+      @on-sort="displaySortMenu"/>
     <div class="image-container" :style="{ height: height + 'px' }">
       <img v-for="item in images" :src="item.image" :title="item.filename" :width="width" :key="item.filename"/>
     </div>
@@ -38,11 +39,34 @@
       </template>
     </tippy>
 
-    <tippy ref="searchBarRef" tag="button" coontent-tag="div" :arrow=false class="search-bar">
+    <tippy ref="searchBarRef" tag="button" content-tag="div" :arrow=false class="search-bar">
       <template #default></template>
       <template #content>
         <div class="search-form">
           <input v-model="searchValue" @keyup.enter="handleSearch" style="backgroud: black;" />
+        </div>
+      </template>
+    </tippy>
+
+    <tippy ref="sortMenuRef" tag="button" content-tag="div" class="sort-menu">
+      <template #default></template>
+      <template #content>
+        <div style="text-align: left; heigth: 24px;">
+          <input id="desc" type="radio" name="direction" value="desc" v-model="direction" @change="handleDirection" />
+          <label for="desc">desc</label>
+        </div>
+        <div style="text-align: left; heigth: 24px;">
+          <input id="asc" type="radio" name="direction" value="asc" v-model="direction" @change="handleDirection" />
+          <label for="asc">asc</label>
+        </div>
+        <hr class="menu-seperator" />
+        <div style="text-align: left; heigth: 24px;">
+          <input id="bytime" type="radio" name="sort" value="bytime" v-model="sortType" @change="handleSort" />
+          <label for="bytime">sort by time</label>
+        </div>
+        <div style="text-align: left; heigth: 24px;">
+          <input id="byname" type="radio" name="sort" value="byname" v-model="sortType" @change="handleSort" />
+          <label for="byname">sort by name</label>
         </div>
       </template>
     </tippy>
@@ -66,6 +90,7 @@ const flipButtonTop = ref(600 / 2)
 const pageInfo = ref<PageInfo>()
 const fileMenuRef = ref()
 const searchBarRef = ref()
+const sortMenuRef = ref()
 const historyItems = ref<Path[]>([])
 const isFolder = ref(false)
 
@@ -124,6 +149,7 @@ const resize = () => {
 
 const displayFileMenu = () => fileMenuRef.value.$el.click()
 const displaySearchBar = () => searchBarRef.value.$el.click()
+const displaySortMenu = () => sortMenuRef.value.$el.click()
 
 const handleOpenArhcive = () => {
   ipcRenderer.invoke('open-archive')
@@ -146,6 +172,11 @@ const handleSearch = () => {
   images.value = []
   ipcRenderer.invoke('search', searchValue.value)
 }
+
+const sortType = ref('bytime')
+const handleSort = () => { ipcRenderer.invoke('sort', sortType.value) }
+const direction = ref('desc')
+const handleDirection = () => { ipcRenderer.invoke('direction', direction.value) }
 
 </script>
 
@@ -228,6 +259,15 @@ const handleSearch = () => {
   position: absolute;
   top: 19px;
   right: 100px;
+  z-index: 9999;
+  background-color: transparent;
+  color: transparent;
+}
+
+.sort-menu {
+  position: absolute;
+  top: 19px;
+  right: 130px;
   z-index: 9999;
   background-color: transparent;
   color: transparent;

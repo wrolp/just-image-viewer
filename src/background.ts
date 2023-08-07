@@ -103,7 +103,9 @@ let currentPage = 0
 const pageSize = 50
 let maxPageIndex = 0
 let dir = appConfig.history.currentDir
-const desc = true
+let searchTerm = ''
+let desc = true
+let sort = 'bytime'
 
 const sendImageData = (sender: WebContents) => {
   const start = currentPage * pageSize
@@ -232,15 +234,9 @@ const openFolder = (sender: WebContents, dirPath: string) => {
         createTime: stats.birthtime
       })
     }
-    files = imageItems.sort((a, b) => {
-      if (a.createTime.getTime() > b.createTime.getTime()) {
-        return desc ? -1 : 1
-      } else {
-        return desc ? 1 : -1
-      }
-    })
-
-    totalFiles = JSON.parse(JSON.stringify(files))
+    totalFiles = JSON.parse(JSON.stringify(imageItems))
+    resort()
+    search()
 
     maxPageIndex = Math.floor(files.length / pageSize)
     logPageInfo(sender)
@@ -295,15 +291,9 @@ ipcMain.handle('open-history', (event: IpcMainInvokeEvent, type: OpenType, path:
 ipcMain.handle('search', (event: IpcMainInvokeEvent, term: string) => {
   console.log(term)
 
-  term = term.trim()
+  searchTerm = term.trim()
 
-  if (term) {
-    files = (totalFiles as ImageItem[]).filter((item: ImageItem) => {
-      return item.filename.toLocaleLowerCase().indexOf(term.toLocaleLowerCase()) > -1
-    })
-  } else {
-    files = JSON.parse(JSON.stringify(totalFiles))
-  }
+  search()
 
   currentPage = 0
   maxPageIndex = Math.floor(files.length / pageSize)
@@ -311,6 +301,53 @@ ipcMain.handle('search', (event: IpcMainInvokeEvent, term: string) => {
   logPageInfo(event.sender)
   sendImageData(event.sender)
 })
+
+ipcMain.handle('sort', (event: IpcMainInvokeEvent, type: string) => {
+  console.log(type)
+  sort = type
+  resort()
+  search()
+  logPageInfo(event.sender)
+  sendImageData(event.sender)
+})
+
+ipcMain.handle('direction', (event: IpcMainInvokeEvent, direction: string) => {
+  console.log(direction)
+  desc = direction === 'desc'
+  resort()
+  search()
+  logPageInfo(event.sender)
+  sendImageData(event.sender)
+})
+
+const search = () => {
+  if (searchTerm) {
+    files = (totalFiles as ImageItem[]).filter((item: ImageItem) => {
+      return item.filename.toLocaleLowerCase().indexOf(searchTerm.toLocaleLowerCase()) > -1
+    })
+  } else {
+    files = JSON.parse(JSON.stringify(totalFiles))
+  }
+}
+
+const resort = () => {
+  totalFiles = totalFiles.sort((a, b) => {
+    if (sort === 'bytime') {
+      if (a.createTime.toString().localeCompare(b.createTime.toString()) > 0) {
+        return desc ? -1 : 1
+      } else {
+        return desc ? 1 : -1
+      }
+    } else if (sort === 'byname') {
+      if (a.filename.localeCompare(b.filename) > 0) {
+        return desc ? -1 : 1
+      } else {
+        return desc ? 1 : -1
+      }
+    }
+    return 0
+  })
+}
 
 ipcMain.handle('show-prev', (event: IpcMainInvokeEvent) => {
   if (currentPage > 0) {

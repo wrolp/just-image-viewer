@@ -16,7 +16,8 @@ import {
   faFileZipper,
   faCircleDot,
   faListUl,
-  faMagnifyingGlass
+  faMagnifyingGlass,
+  faSort
 } from '@fortawesome/free-solid-svg-icons'
 
 library.add(
@@ -29,7 +30,8 @@ library.add(
   faFileZipper,
   faCircleDot,
   faListUl,
-  faMagnifyingGlass
+  faMagnifyingGlass,
+  faSort
 )
 
 const app = createApp(App)

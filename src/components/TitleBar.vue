@@ -3,21 +3,32 @@
     <div class="title-drag-region"></div>
     <div class="window-title">{{ props.title }}</div>
     <div class="window-controls-container">
+      <div class="window-icon"></div>
+      <!-- search -->
       <div class="window-icon" v-if="props.canSearch" @click="search">
         <font-awesome-icon size="lg" icon="fa-solid fa-magnifying-glass" />
       </div>
+      <!-- sort -->
+      <div class="window-icon" v-if="props.canSearch" @click="sort">
+        <font-awesome-icon size="lg" icon="fa-solid fa-sort" />
+      </div>
+      <!-- open file or folder -->
       <div class="window-icon" @click="openFile">
         <font-awesome-icon size="lg" icon="fa-solid fa-ellipsis-vertical" />
       </div>
+      <!-- minimize -->
       <div class="window-icon" @click="minimize">
         <font-awesome-icon size="lg" icon="fa-solid fa-window-minimize" />
       </div>
+      <!-- maximized -->
       <div v-if="!maximized" class="window-icon" @click="maximize">
         <font-awesome-icon size="lg" icon="fa-solid fa-window-maximize" />
       </div>
+      <!-- restore -->
       <div v-else class="window-icon" @click="restore">
         <font-awesome-icon size="lg" icon="fa-solid fa-window-restore" />
       </div>
+      <!-- close -->
       <div class="window-icon window-close" @click="close">
         <font-awesome-icon size="lg" icon="fa-solid fa-xmark" />
       </div>
@@ -37,9 +48,10 @@ import {
 const maximized = ref(false)
 
 const props = defineProps<{ title: string, canSearch: boolean }>()
-const emit = defineEmits(['on-search', 'on-file'])
+const emit = defineEmits(['on-search', 'on-file', 'on-sort'])
 
 const search = () => emit('on-search')
+const sort = () => emit('on-sort')
 const openFile = () => emit('on-file')
 const minimize = () => ipcRenderer.invoke('minimize-window')
 const maximize = () => ipcRenderer.invoke('maximize-window')
@@ -67,13 +79,14 @@ onMounted(() => {
   line-height: 22px;
   height: 22px;
   display: flex;
-  color: #f5f5f5;
+  color: transparent;
   z-index: 6001;
   position: fixed;
   background-color: none;
 
   &:hover {
     background-color: rgba(0, 0, 0, 0.5);
+    color: #f5f5f5;
   }
 
   .title-drag-region {
@@ -99,6 +112,11 @@ onMounted(() => {
     margin-right: auto;
     zoom: 1;
     -webkit-app-region: drag;
+
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.5);
+      color: #f5f5f5;
+    }
   }
 
   .window-controls-container {
