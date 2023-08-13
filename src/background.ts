@@ -88,7 +88,7 @@ const createWindow = () => {
 
 interface ImageItem {
   filename: string
-  createTime: Date
+  createTime: number
 }
 
 ipcMain.handle('close-window', () => mainWindow && mainWindow.close())
@@ -231,7 +231,7 @@ const openFolder = (sender: WebContents, dirPath: string) => {
       const stats = fs.statSync(dir + '/' + images[i])
       imageItems.push({
         filename: images[i],
-        createTime: stats.birthtime
+        createTime: stats.birthtime.getTime()
       })
     }
     totalFiles = JSON.parse(JSON.stringify(imageItems))
@@ -333,7 +333,7 @@ const search = () => {
 const resort = () => {
   totalFiles = totalFiles.sort((a, b) => {
     if (sort === 'bytime') {
-      if (a.createTime.toString().localeCompare(b.createTime.toString()) > 0) {
+      if (a.createTime > b.createTime) {
         return desc ? -1 : 1
       } else {
         return desc ? 1 : -1
