@@ -3,6 +3,8 @@
     <title-bar
       :title="shortname"
       :can-search="isFolder"
+      :withContent="withContent"
+      :show="showTitleBar"
       @on-file="displayFileMenu"
       @on-search="displaySearchBar"
       @on-sort="displaySortMenu"/>
@@ -14,7 +16,12 @@
     <float-button class="paging-button" :width=80 :height=60 icon="fa fa-chevron-right"
                   :top="flipButtonTop" :right="10" :pageInfo="pageInfo" @click="next"/>
 
-    <tippy ref="fileMenuRef" tag="button" content-tag="div" class="file-menu">
+    <tippy ref="fileMenuRef"
+           @show="handleShowFileMenu"
+           @hide="handleHideFileMenu"
+           tag="button"
+           content-tag="div"
+           class="file-menu">
       <template #default></template>
       <template #content>
         <div class="menu-container">
@@ -39,7 +46,13 @@
       </template>
     </tippy>
 
-    <tippy ref="searchBarRef" tag="button" content-tag="div" :arrow=false class="search-bar">
+    <tippy ref="searchBarRef"
+           @show="handleShowSearch"
+           @hide="handleHideSearch"
+           tag="button"
+           content-tag="div"
+           :arrow=false
+           class="search-bar">
       <template #default></template>
       <template #content>
         <div class="search-form">
@@ -48,7 +61,12 @@
       </template>
     </tippy>
 
-    <tippy ref="sortMenuRef" tag="button" content-tag="div" class="sort-menu">
+    <tippy ref="sortMenuRef"
+           @show="handleShowSort"
+           @hide="handleHideSort"
+           tag="button"
+           content-tag="div"
+           class="sort-menu">
       <template #default></template>
       <template #content>
         <div style="text-align: left; heigth: 24px;">
@@ -93,6 +111,7 @@ const searchBarRef = ref()
 const sortMenuRef = ref()
 const historyItems = ref<Path[]>([])
 const isFolder = ref(false)
+const withContent = ref(false)
 
 const resizeDebounce = debounce(() => resize(), 50)
 
@@ -110,6 +129,7 @@ onMounted(() => {
   })
   ipcRenderer.on('shortname', (event: IpcRendererEvent, filename: string) => {
     shortname.value = filename
+    withContent.value = true
     images.value = []
   })
   ipcRenderer.on('page-info', (event: IpcRendererEvent, pi: PageInfo) => {
@@ -178,6 +198,13 @@ const handleSort = () => { ipcRenderer.invoke('sort', sortType.value) }
 const direction = ref('desc')
 const handleDirection = () => { ipcRenderer.invoke('direction', direction.value) }
 
+const showTitleBar = ref(false)
+const handleShowFileMenu = () => { showTitleBar.value = true }
+const handleHideFileMenu = () => { showTitleBar.value = false }
+const handleShowSort = () => { showTitleBar.value = true }
+const handleHideSort = () => { showTitleBar.value = false }
+const handleShowSearch = () => { showTitleBar.value = true }
+const handleHideSearch = () => { showTitleBar.value = false }
 </script>
 
 <style lang="scss" scoped>

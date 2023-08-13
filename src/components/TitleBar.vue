@@ -1,8 +1,10 @@
 <template>
-  <div class="titlebar">
+  <div class="titlebar" :class="hide ? 'hide' : ''">
     <div class="title-drag-region"></div>
-    <div class="window-title">{{ props.title }}</div>
-    <div class="window-controls-container">
+    <div class="window-title" :class="hide || !withContent ? 'hide' : ''">
+      {{ props.title || '_' }}
+    </div>
+    <div class="window-controls-container" @mouseover="handleMouseOver" @mouseleave="handleMouseLeave">
       <div class="window-icon"></div>
       <!-- search -->
       <div class="window-icon" v-if="props.canSearch" @click="search">
@@ -42,12 +44,18 @@ import {
   ref,
   onMounted,
   defineProps,
-  defineEmits
+  defineEmits,
+  watch
 } from 'vue'
 
 const maximized = ref(false)
 
-const props = defineProps<{ title: string, canSearch: boolean }>()
+const props = defineProps<{
+  title: string,
+  canSearch: boolean,
+  withContent: boolean
+  show: boolean
+}>()
 const emit = defineEmits(['on-search', 'on-file', 'on-sort'])
 
 const search = () => emit('on-search')
@@ -62,6 +70,30 @@ onMounted(() => {
   ipcRenderer.on('maximized', (event: IpcRendererEvent, value: boolean) => {
     maximized.value = value
   })
+})
+
+const hide = ref(false)
+let timeout: NodeJS.Timeout | null
+const handleMouseLeave = () => {
+  timeout = setTimeout(() => {
+    // console.log('handle timeout', timeout)
+    hide.value = props.show ? false : props.withContent
+    timeout = null
+  }, 3000)
+  // console.log('set timeout', timeout)
+}
+const handleMouseOver = () => {
+  hide.value = false
+  if (timeout) {
+    // console.log('clear timeout', timeout)
+    clearTimeout(timeout)
+    timeout = null
+  }
+}
+
+watch(() => props.show, value => {
+  // console.log(value)
+  !value && handleMouseLeave()
 })
 </script>
 
@@ -79,15 +111,11 @@ onMounted(() => {
   line-height: 22px;
   height: 22px;
   display: flex;
-  color: transparent;
+  color: #f5f5f5;
+  background-color: rgba(0, 0, 0, 0.5);
   z-index: 6001;
   position: fixed;
   background-color: none;
-
-  &:hover {
-    background-color: rgba(0, 0, 0, 0.5);
-    color: #f5f5f5;
-  }
 
   .title-drag-region {
     top: 0;
@@ -110,13 +138,11 @@ onMounted(() => {
     text-overflow: ellipsis;
     margin-left: auto;
     margin-right: auto;
+    width: 100%;
+    text-align: center;
+    // color: transparent;
     zoom: 1;
     -webkit-app-region: drag;
-
-    &:hover {
-      background-color: rgba(0, 0, 0, 0.5);
-      color: #f5f5f5;
-    }
   }
 
   .window-controls-container {
@@ -152,5 +178,10 @@ onMounted(() => {
       }
     }
   }
+}
+
+.hide {
+  background-color: transparent;
+  color: transparent;
 }
 </style>

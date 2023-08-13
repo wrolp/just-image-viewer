@@ -1,5 +1,10 @@
 {
   "name": "just-image-viewer",
+  "description": "image viewer",
+  "author": {
+    "name": "H.G Vantking",
+    "email": "hgtk11@163.com"
+   },
   "version": "0.1.0",
   "private": true,
   "main": "background.js",

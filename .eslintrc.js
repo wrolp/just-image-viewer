@@ -9,6 +9,9 @@ module.exports = {
     '@vue/standard',
     '@vue/typescript/recommended'
   ],
+  globals: {
+    NodeJS: 'readonly'
+  },
   parserOptions: {
     ecmaVersion: 2020
     // parser: '@typescript-eslint/parser',
