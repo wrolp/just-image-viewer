@@ -26,19 +26,19 @@
       <template #content>
         <div class="menu-container">
           <div class="menu-item" @click="handleOpenArhcive">
-            <font-awesome-icon icon="fa-solid fa-file-zipper" style="color: #28a745" />
+            <font-awesome-icon icon="fa-solid fa-file-zipper" style="color: #007bff" />
             <span style="margin-left: 8px;">Open Archive</span>
           </div>
           <div class="menu-item" @click="handleOpenFolder">
-            <font-awesome-icon icon="fa-solid fa-folder" style="color: #007bff" />
+            <font-awesome-icon icon="fa-solid fa-folder" style="color: #28a745" />
             <span style="margin-left: 5px;">Open Folder</span>
           </div>
           <hr class="menu-seperator" />
           <div class="menu-history">
             <div v-for="item in historyItems" class="menu-item" :key="item.shortname"
               @click="handleOpenItem(item.type, item.fullpath)" :title="item.shortname">
-              <font-awesome-icon v-if="item.type === 'archive'" size="sm" icon="fa-solid fa-circle-dot" style="color: #28a745" />
-              <font-awesome-icon v-else icon="fa-solid fa-list-ul" style="color: #007bff" />
+              <font-awesome-icon v-if="item.type === 'archive'" size="sm" icon="fa-solid fa-circle-dot" style="color: #007bff" />
+              <font-awesome-icon v-else icon="fa-solid fa-list-ul" style="color: #28a745" />
               {{ item.shortname }}
             </div>
           </div>
@@ -56,7 +56,8 @@
       <template #default></template>
       <template #content>
         <div class="search-form">
-          <input v-model="searchValue" @keyup.enter="handleSearch" style="backgroud: black;" />
+          <input id="searchInput" v-model="searchValue" @keyup.enter="handleSearch" />
+          <font-awesome-icon id="clear" size="lg" icon="fa-solid fa-xmark" @click="clear" />
         </div>
       </template>
     </tippy>
@@ -106,9 +107,6 @@ const width = ref(800)
 const height = ref(600)
 const flipButtonTop = ref(600 / 2)
 const pageInfo = ref<PageInfo>()
-const fileMenuRef = ref()
-const searchBarRef = ref()
-const sortMenuRef = ref()
 const historyItems = ref<Path[]>([])
 const isFolder = ref(false)
 const withContent = ref(false)
@@ -167,9 +165,20 @@ const resize = () => {
   flipButtonTop.value = clientHeight / 2 - 40
 }
 
+const fileMenuRef = ref()
 const displayFileMenu = () => fileMenuRef.value.$el.click()
-const displaySearchBar = () => searchBarRef.value.$el.click()
+const searchBarRef = ref()
+const displaySearchBar = () => {
+  searchBarRef.value.$el.click()
+  focusSearchInput()
+}
+const sortMenuRef = ref()
 const displaySortMenu = () => sortMenuRef.value.$el.click()
+
+const focusSearchInput = () => {
+  const input = document.getElementById('searchInput')
+  input?.focus()
+}
 
 const handleOpenArhcive = () => {
   ipcRenderer.invoke('open-archive')
@@ -205,29 +214,14 @@ const handleShowSort = () => { showTitleBar.value = true }
 const handleHideSort = () => { showTitleBar.value = false }
 const handleShowSearch = () => { showTitleBar.value = true }
 const handleHideSearch = () => { showTitleBar.value = false }
+
+const clear = () => {
+  searchValue.value = ''
+  focusSearchInput()
+}
 </script>
 
 <style lang="scss" scoped>
-.body-container {
-  color: transparent;
-  overflow-y: scroll;
-  overflow-x: hidden;
-  margin: 0;
-}
-
-.app-drag-area {
-  -webkit-app-region: drag;
-  width: 100%;
-  height: 20px;
-  background-color: transparent;
-  position: fixed;
-  top: 1px;
-}
-
-.app-drag-area:hover {
-  background-color: rgba(0, 0, 0, 0.2)
-}
-
 #close-button, #next-button, #prev-button {
   width: 20px;
   height: 20px;
@@ -247,10 +241,6 @@ const handleHideSearch = () => { showTitleBar.value = false }
   display: block;
 }
 
-.footer {
-  height: 10px;
-}
-
 .image-container {
   top: 0;
   left: 0;
@@ -258,21 +248,6 @@ const handleHideSearch = () => { showTitleBar.value = false }
   position: fixed;
   overflow-y: scroll;
   z-index: 1000;
-}
-
-.btn {
-  @apply
-    px-4 py-1 text-sm text-purple-600 font-semibold
-    rounded-full border border-purple-200 dark:border-purple-800
-    hover:text-white hover:bg-purple-600 hover:border-transparent
-    focus:outline-none focus:ring-2 ring-purple-600 ring-opacity-40;
-}
-
-.close-win {
-  -webkit-app-region: no-drag;
-  &:hover {
-    background-color: #ee0000;
-  }
 }
 
 .paging-button {
@@ -307,6 +282,25 @@ const handleHideSearch = () => { showTitleBar.value = false }
   margin: 0 auto;
   background-color: transparent;
   color: transparent;
+}
+
+.search-form {
+  > input {
+    background-color: #363434;
+    padding: 8px 26px 8px 8px;
+    outline: none;
+  }
+  > #clear {
+    cursor: pointer;
+    position: absolute;
+    top: 13px;
+    right: 18px;
+    font-size: 20px;
+    color: #FFFFFF55;
+    &:hover {
+      color: #FFFFFFDD;
+    }
+  }
 }
 
 .menu-container {
